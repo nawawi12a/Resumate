@@ -1,0 +1,71 @@
+import streamlit as st
+from ai_resume import generate_resume, generate_cover_letter
+
+# App title and description
+st.set_page_config(page_title="AI-Powered Resume Builder", page_icon="📄", layout="wide")
+st.title("📄 AI-Powered Resume Builder")
+st.write("Create professional resumes and cover letters in minutes!")
+
+# Securely set OpenAI API key (use Streamlit secrets or environment variables)
+openai.api_key = st.secrets["OPENAI_API_KEY"]  # Replace with your secure method
+
+# Function to improve resume with AI (you need to define this)
+def improve_resume_with_ai(resume_text):
+    prompt = f"""
+    Improve the following resume. Make it more professional, concise, and tailored for a {job_title} role:
+    {resume_text}
+    """
+    response = openai.Completion.create(
+        engine="text-davinci-003",
+        prompt=prompt,
+        max_tokens=500,
+        temperature=0.7,
+    )
+    return response.choices[0].text.strip()
+
+# Sidebar for user input
+with st.sidebar:
+    st.header("Enter Your Details")
+    job_title = st.text_input("Job Title", placeholder="e.g., Software Engineer")
+    skills = st.text_area("Skills", placeholder="e.g., Python, JavaScript, React")
+    experience = st.number_input("Years of Experience", min_value=0, max_value=50, value=1)
+    company = st.text_input("Company Name (for cover letter)", placeholder="e.g., Google")
+
+# Main section
+st.header("Resume and Cover Letter Options")
+
+# Option 1: Generate Resume
+if st.button("Generate Resume"):
+    if job_title and skills and experience:
+        with st.spinner("Generating your resume..."):
+            resume = generate_resume(job_title, skills, experience)
+            st.subheader("Your AI-Generated Resume")
+            st.write(resume)
+            st.download_button("Download Resume", resume, file_name="resume.txt")
+    else:
+        st.error("Please fill in all fields.")
+
+# Option 2: Generate Cover Letter
+if st.button("Generate Cover Letter"):
+    if job_title and skills and experience and company:
+        with st.spinner("Generating your cover letter..."):
+            cover_letter = generate_cover_letter(job_title, company, skills, experience)
+            st.subheader("Your AI-Generated Cover Letter")
+            st.write(cover_letter)
+            st.download_button("Download Cover Letter", cover_letter, file_name="cover_letter.txt")
+    else:
+        st.error("Please fill in all fields.")
+
+# Option 3: Improve Resume with AI
+st.header("Improve Your Resume")
+resume_text = st.text_area("Paste your resume here to improve it:", height=300, placeholder="Paste your resume here...")
+
+if st.button("Improve Resume with AI"):
+    if resume_text.strip():
+        with st.spinner("Analyzing your resume..."):
+            improved_resume = improve_resume_with_ai(resume_text)
+            st.subheader("Improved Resume")
+            st.write(improved_resume)
+            st.download_button("Download Improved Resume", improved_resume, file_name="improved_resume.txt")
+    else:
+        st.error("Please paste your resume to improve it.")
